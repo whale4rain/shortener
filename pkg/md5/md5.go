@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 )
 
+// 将数据进行MD5加密成32位16进制
 func Sum(data []byte) string {
 	h := md5.New()
 	h.Write(data)
