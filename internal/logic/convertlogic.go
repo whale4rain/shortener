@@ -8,6 +8,8 @@ import (
 
 	"shortener/internal/svc"
 	"shortener/internal/types"
+	"shortener/model"
+	"shortener/pkg/base62"
 	"shortener/pkg/connect"
 	"shortener/pkg/md5"
 	"shortener/pkg/urltool"
@@ -81,16 +83,39 @@ func (l *ConvertLogic) Convert(req *types.ConvertRequest) (resp *types.ConvertRe
 		return nil, err
 	}
 
+	var short string
 	// 2. 取号
-	seq, err := l.svcCtx.Sequence.Next()
-	if err != nil {
-		logx.Errorw("Sequence.Next failed", logx.LogField{
-			Key:   "error",
-			Value: err.Error(),
-		})
+	for {
+		seq, err := l.svcCtx.Sequence.Next()
+		if err != nil {
+			logx.Errorw("Sequence.Next failed", logx.LogField{
+				Key:   "error",
+				Value: err.Error(),
+			})
+			return nil, err
+		}
+		fmt.Println(seq)
+
+		// 3. 号转短链
+		short = base62.Int2String(seq)
+		if _, ok := l.svcCtx.ShortUrlBlackList[short]; !ok {
+			break
+		}
+	}
+	fmt.Printf("short:%v\n", short)
+	// 4. 存储长短链映射关系
+	if _, err := l.svcCtx.ShortUrlModel.Insert(
+		l.ctx,
+		&model.ShortUrlMap{
+			Lurl: sql.NullString{String: req.LongUrl, Valid: true},
+			Md5:  sql.NullString{String: md5Value, Valid: true},
+			Surl: sql.NullString{String: short, Valid: true},
+		},
+	); err != nil {
+		logx.Errorw("ShortUrlMode.Insert() failed", logx.LogField{Key: "err", Value: err.Error()})
 		return nil, err
 	}
-	fmt.Println(seq)
-	return
-
+	// 5. 返回响应
+	shortUrl := l.svcCtx.Config.ShortDomain + "/" + short
+	return &types.ConvertResponse{ShortUrl: shortUrl}, nil
 }

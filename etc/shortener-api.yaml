@@ -7,3 +7,8 @@ ShortUrlDB:
 
 Sequence:
   DSN: "root:Pyc20060123@tcp(localhost:3306)/db3?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai"
+BaseString: mnopqrstuDEFGHIJKLMNOPQRSTUVWXYZ0123456789efghijklvwxyzABCabcd
+
+ShortUrlBlackList: ["version", "fuxk", "convert", "stupid", "health", "api"]
+
+ShortDomain: whale.cn
