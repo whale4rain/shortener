@@ -115,6 +115,11 @@ func (l *ConvertLogic) Convert(req *types.ConvertRequest) (resp *types.ConvertRe
 		logx.Errorw("ShortUrlMode.Insert() failed", logx.LogField{Key: "err", Value: err.Error()})
 		return nil, err
 	}
+	// 短链接加到bloom过滤器中
+	if err := l.svcCtx.Filter.Add([]byte(short)); err != nil {
+		logx.Errorw("BloomFilter.Add() failed", logx.LogField{Key: "err", Value: err.Error()})
+	}
+
 	// 5. 返回响应
 	shortUrl := l.svcCtx.Config.ShortDomain + "/" + short
 	return &types.ConvertResponse{ShortUrl: shortUrl}, nil
