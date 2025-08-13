@@ -80,6 +80,17 @@ func (l *ConvertLogic) Convert(req *types.ConvertRequest) (resp *types.ConvertRe
 		})
 		return nil, err
 	}
+
+	// 2. 取号
+	seq, err := l.svcCtx.Sequence.Next()
+	if err != nil {
+		logx.Errorw("Sequence.Next failed", logx.LogField{
+			Key:   "error",
+			Value: err.Error(),
+		})
+		return nil, err
+	}
+	fmt.Println(seq)
 	return
 
 }
